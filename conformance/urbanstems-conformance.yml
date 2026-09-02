@@ -1,0 +1,217 @@
+generated: '2026-09-02'
+method: probed
+source: >-
+  https://urbanstems.com/.well-known/ucp (200), /.well-known/openid-configuration (200),
+  /.well-known/oauth-protected-resource (200), /llms.txt (200), /agents.md (200),
+  /sitemap_agentic_discovery.xml (200), live MCP initialize + tools/list against
+  https://274513-24.myshopify.com/api/ucp/mcp (200)
+name: UrbanStems standards conformance
+slug: urbanstems
+
+conformance:
+- id: mcp
+  name: Model Context Protocol
+  version: '2025-06-18'
+  conforms: true
+  evidence:
+    probe: 'POST initialize -> {"protocolVersion":"2025-06-18","serverInfo":{"name":"universal-commerce","version":"0.1.0"}}'
+    url: https://274513-24.myshopify.com/api/ucp/mcp
+    http_status: 200
+    capabilities: tools.listChanged, prompts.listChanged, resources.listChanged, logging
+
+- id: jsonrpc2
+  name: JSON-RPC 2.0
+  conforms: true
+  evidence:
+    probe: 'tools/list response carries {"jsonrpc":"2.0","id":1,"result":{...}}'
+    url: https://274513-24.myshopify.com/api/ucp/mcp
+    http_status: 200
+
+- id: json-schema-2020-12
+  name: JSON Schema Draft 2020-12
+  conforms: true
+  evidence:
+    probe: >-
+      Every one of the 13 tool inputSchemas declares
+      "$schema":"https://json-schema.org/draft/2020-12/schema", and several use conditional
+      applicators (allOf/if/then/else) for the Apple Pay instrument shape.
+    file: mcp/urbanstems-ucp-mcp-tools.json
+
+- id: oauth2
+  name: OAuth 2.0
+  conforms: true
+  evidence:
+    url: https://urbanstems.com/.well-known/oauth-authorization-server
+    http_status: 200
+    detail: >-
+      RFC 8414 authorization server metadata; authorization_code + refresh_token +
+      urn:ietf:params:oauth:grant-type:jwt-bearer grants, S256 PKCE.
+
+- id: oidc
+  name: OpenID Connect Discovery 1.0
+  conforms: true
+  evidence:
+    url: https://urbanstems.com/.well-known/openid-configuration
+    http_status: 200
+    detail: >-
+      issuer, token/authorization/end_session endpoints, jwks_uri, RS256 id_token signing, public
+      subject types, standard claims.
+
+- id: rfc9728
+  name: 'RFC 9728 — OAuth 2.0 Protected Resource Metadata'
+  conforms: true
+  evidence:
+    url: https://urbanstems.com/.well-known/oauth-protected-resource
+    http_status: 200
+    detail: 'resource, authorization_servers[], bearer_methods_supported: ["header"]'
+
+- id: llmstxt
+  name: llms.txt
+  conforms: true
+  evidence:
+    url: https://urbanstems.com/llms.txt
+    http_status: 200
+    content_type: text/markdown
+    detail: >-
+      Served as real markdown, referenced from robots.txt ("# llms.txt: /llms.txt"), and mirrored at
+      /agents.md which is the single entry in a dedicated /sitemap_agentic_discovery.xml.
+
+- id: idempotency
+  name: Idempotent write semantics
+  conforms: partial
+  evidence:
+    detail: >-
+      complete_checkout requires meta.idempotency-key. No other write tool (create_cart,
+      create_checkout, update_cart, update_checkout) declares or accepts one.
+    file: mcp/urbanstems-ucp-mcp-tools.json
+
+- id: pagination
+  name: Cursor pagination
+  conforms: true
+  evidence:
+    detail: >-
+      search_catalog accepts catalog.pagination.cursor and .limit (default 10, minimum 1) and returns
+      pagination.cursor for the next page.
+    file: mcp/urbanstems-ucp-mcp-tools.json
+
+- id: rfc9457
+  name: 'RFC 9457 — Problem Details for HTTP APIs'
+  conforms: false
+  evidence:
+    detail: >-
+      No application/problem+json anywhere. Storefront errors use
+      {"error":{"statusCode":..,"message":..}}; MCP errors use the JSON-RPC error object.
+
+- id: rfc9116
+  name: 'RFC 9116 — security.txt'
+  conforms: false
+  evidence:
+    url: https://urbanstems.com/.well-known/security.txt
+    http_status: 404
+    also_probed:
+    - url: https://tracking.urbanstems.com/.well-known/security.txt
+      http_status: 404
+
+- id: rfc9727
+  name: 'RFC 9727 — api-catalog well-known URI'
+  conforms: false
+  evidence:
+    url: https://urbanstems.com/.well-known/api-catalog
+    http_status: 404
+
+- id: a2a
+  name: 'A2A Agent Card'
+  conforms: false
+  evidence:
+    probed:
+    - url: https://urbanstems.com/.well-known/agent-card.json
+      http_status: 404
+    - url: https://urbanstems.com/.well-known/agent.json
+      http_status: 404
+    - url: https://tracking.urbanstems.com/.well-known/agent-card.json
+      http_status: 404
+
+- id: openapi
+  name: OpenAPI
+  conforms: false
+  evidence:
+    detail: >-
+      No OpenAPI is published. Probed /openapi.json (404), /openapi.yaml, /swagger.json, /api-docs,
+      /docs and /redoc on urbanstems.com; none returns a spec. The machine-readable contract this
+      merchant publishes is the MCP tool schema set, not an OpenAPI.
+
+domain_standards:
+- id: ucp
+  name: Universal Commerce Protocol
+  market: agentic commerce / retail checkout
+  declared_version: '2026-08-25'
+  conforms: true
+  graded: declared-in-contract
+  evidence:
+    url: https://urbanstems.com/.well-known/ucp
+    http_status: 200
+    location: 'ucp.services["dev.ucp.shopping"][0] and ucp.capabilities[*]'
+    detail: >-
+      The merchant profile is the UCP discovery document itself, not a prose claim. It declares the
+      dev.ucp.shopping service over MCP transport at a named endpoint plus seven namespaced
+      capabilities.
+  capabilities_declared:
+  - dev.ucp.shopping.cart
+  - dev.ucp.shopping.checkout
+  - dev.ucp.shopping.fulfillment
+  - dev.ucp.shopping.discount
+  - dev.ucp.shopping.order
+  - dev.ucp.shopping.catalog.search
+  - dev.ucp.shopping.catalog.lookup
+  - dev.shopify.catalog
+  fulfillment_config:
+    multi_destination: []
+    method_combinations: [[shipping]]
+  spec: https://ucp.dev/2026-08-25/specification/overview/
+  schema: https://ucp.dev/2026-08-25/services/shopping/mcp.openrpc.json
+  schema_ownership_note: >-
+    The OpenRPC schema and JSON Schemas referenced by the profile are published by ucp.dev and
+    shopify.dev — the standards body and the platform, not UrbanStems. They are cited as the
+    standard UrbanStems declares conformance to, and are deliberately NOT saved into this repo as
+    UrbanStems' own contract.
+  agent_confirmation: >-
+    Tool names returned by the live server (search_catalog, lookup_catalog, get_product, create_cart,
+    update_cart, cancel_cart, get_cart, create_checkout, update_checkout, complete_checkout,
+    cancel_checkout, get_checkout, get_order) match the declared capability set one-for-one, and
+    search_catalog's description states "Response conforms to the UCP catalog search capability
+    (dev.ucp.shopping.catalog.search)."
+
+- id: payment-handler-profiles
+  name: UCP payment handler profiles
+  conforms: true
+  evidence:
+    url: https://urbanstems.com/.well-known/ucp
+    http_status: 200
+    handlers:
+    - com.google.pay 2026-01-11 (Google Pay API v2, PAN_ONLY + CRYPTOGRAM_3DS, gateway shopify)
+    - dev.shopify.card 2026-01-15
+    - dev.shopify.shop_pay 2026-04-08
+
+- id: iso4217
+  name: 'ISO 4217 currency codes'
+  conforms: true
+  evidence:
+    detail: All prices are integer minor units paired with an ISO 4217 code, stated in every tool description.
+- id: iso3166-1
+  name: 'ISO 3166-1 alpha-2 country codes'
+  conforms: true
+  evidence:
+    detail: context.address_country and billing_address.address_country are documented as alpha-2.
+- id: bcp47
+  name: 'IETF BCP 47 language tags'
+  conforms: true
+  evidence:
+    detail: context.language documented as "Language tag in IETF BCP 47 format".
+
+compliance_certifications:
+  published: false
+  note: >-
+    UrbanStems publishes no trust center and names no certification (SOC 2, ISO 27001, PCI DSS,
+    HIPAA, FedRAMP) on any page probed. Card data never touches an UrbanStems system in the agent
+    flow — it is tokenized by Google Pay, Shop Pay or Shopify's card handler — but no PCI attestation
+    is published by UrbanStems itself. No Compliance pointer is claimed.

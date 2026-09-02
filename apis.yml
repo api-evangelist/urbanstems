@@ -1,23 +1,164 @@
 aid: urbanstems
 name: UrbanStems
-description: 'UrbanStems is a company surfaced via the API Evangelist harvest backlog (source: secondary-market)
-  and added to the network as a stub for full-pipeline profiling.'
+description: >-
+  UrbanStems is a direct-to-consumer flower and gifting company founded on Valentine's Day 2014 in
+  Washington, DC, selling modern bouquets, plants, gifts and centerpieces with same-day delivery in
+  major US cities and next-day delivery nationwide, sourced through a vertically integrated supply
+  chain that buys direct from Rainforest Alliance Certified farms. Its storefront runs on Shopify at
+  urbanstems.com, and the company exposes a genuine agent-facing commerce surface rather than a
+  developer API program: a published /llms.txt and /agents.md, a /.well-known/ucp merchant profile
+  implementing the Universal Commerce Protocol (UCP 2026-08-25), and a live unauthenticated
+  Model Context Protocol endpoint offering thirteen catalog, cart, checkout and order tools that lets
+  an agent search the catalog and drive a buyer-approved purchase end to end.
+image: https://urbanstems.com/cdn/shop/t/637/assets/organization-image_large.png?v=133620255960512887901788204824
 url: https://raw.githubusercontent.com/api-evangelist/urbanstems/refs/heads/main/apis.yml
 x-type: company
 x-source: harvest:secondary-market
-x-tier: stub
-x-tier-reason: harvest
 specificationVersion: '0.20'
 created: '2026-09-02'
 modified: '2026-09-02'
 tags:
 - Company
-apis: []
+- Commerce
+- E-Commerce
+- Retail
+- Flowers
+- Gifting
+- Agentic Commerce
+- Universal Commerce Protocol
+- Model Context Protocol
+- Shopify
+- Direct to Consumer
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
 - FN: APIs.json
   email: info@apis.io
+apis:
+- aid: urbanstems:urbanstems-commerce-mcp-api
+  name: UrbanStems Commerce MCP API
+  description: >-
+    The agent-facing commerce surface for the UrbanStems store, implementing the Universal Commerce
+    Protocol (dev.ucp.shopping) over MCP. Thirteen tools cover catalog search and lookup, product
+    detail, cart create/update/cancel, checkout create/update/complete/cancel, and order retrieval.
+    Anonymous — no API key or OAuth token is required to list tools or search the catalog — but
+    completing a checkout requires an idempotency key and contemporaneous buyer approval of payment.
+  humanURL: https://urbanstems.com/agents.md
+  baseURL: https://274513-24.myshopify.com/api/ucp/mcp
+  tags:
+  - Commerce
+  - Catalog
+  - Cart
+  - Checkout
+  - Orders
+  - Agentic Commerce
+  properties:
+  - type: Documentation
+    url: https://urbanstems.com/agents.md
+  - type: MCPServer
+    url: mcp/urbanstems-mcp.yml
+  - type: ToolCrosswalk
+    url: mcp/urbanstems-tool-crosswalk.yml
+  - type: WellKnown
+    url: well-known/urbanstems-ucp.json
+  - type: Authentication
+    url: authentication/urbanstems-authentication.yml
+  - type: Conventions
+    url: conventions/urbanstems-conventions.yml
+  - type: Idempotency
+    url: conventions/urbanstems-conventions.yml
+  - type: DataModel
+    url: data-model/urbanstems-data-model.yml
+  - type: ErrorCatalog
+    url: errors/urbanstems-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/urbanstems-rate-limits.yml
+- aid: urbanstems:urbanstems-storefront-json-api
+  name: UrbanStems Storefront JSON API
+  description: >-
+    The read-only storefront JSON endpoints UrbanStems documents for agents in its own /llms.txt and
+    /agents.md — product JSON at /products/{handle}.json, collection product listings at
+    /collections/{handle}/products.json, and the sitemap set including a dedicated agentic-discovery
+    sitemap. No authentication is required. These are Shopify Online Store routes served on the
+    UrbanStems domain and named by UrbanStems in its own agent instructions.
+  humanURL: https://urbanstems.com/llms.txt
+  baseURL: https://urbanstems.com
+  x-base-note: >-
+    The site root IS the API base for this entry, not a marketing URL standing in for one. Shopify
+    Online Store JSON routes are served off the storefront origin — https://urbanstems.com/products/{handle}.json
+    returned HTTP 200 application/json on 2026-09-02 — and UrbanStems names exactly these paths in its
+    own /llms.txt. The other api entry deliberately carries a different host
+    (274513-24.myshopify.com), which is where the MCP endpoint actually answers; the two bases
+    disagree because the two surfaces genuinely live on different hosts.
+  tags:
+  - Products
+  - Collections
+  - Catalog
+  - Sitemap
+  properties:
+  - type: Documentation
+    url: https://urbanstems.com/llms.txt
+  - type: LLMsTxt
+    url: llms/urbanstems-llms.txt
 common:
+- type: DomainSecurity
+  url: security/urbanstems-domain-security.yml
 - type: Website
-  url: https://www.nasdaqprivatemarket.com/
+  url: https://urbanstems.com/
+- type: Documentation
+  url: https://urbanstems.com/agents.md
+- type: Support
+  url: https://help.urbanstems.com/en-US
+- type: Blog
+  url: https://urbanstems.com/blogs/news
+- type: BlogRSS
+  url: https://urbanstems.com/blogs/news.atom
+- type: SignUp
+  url: https://urbanstems.com/account/register
+- type: Login
+  url: https://urbanstems.com/account/login
+- type: TermsOfService
+  url: https://urbanstems.com/policies/terms-of-service
+- type: PrivacyPolicy
+  url: https://urbanstems.com/policies/privacy-policy
+- type: GitHubOrganization
+  url: https://github.com/urbanstems
+- type: MCPServer
+  url: mcp/urbanstems-mcp.yml
+- type: ToolCrosswalk
+  url: mcp/urbanstems-tool-crosswalk.yml
+- type: LLMsTxt
+  url: llms/urbanstems-llms.txt
+- type: WellKnown
+  url: well-known/urbanstems-well-known.yml
+- type: Authentication
+  url: authentication/urbanstems-authentication.yml
+- type: OAuthScopes
+  url: scopes/urbanstems-scopes.yml
+- type: Conventions
+  url: conventions/urbanstems-conventions.yml
+- type: Idempotency
+  url: conventions/urbanstems-conventions.yml
+- type: ErrorCatalog
+  url: errors/urbanstems-problem-types.yml
+- type: RateLimits
+  url: rate-limits/urbanstems-rate-limits.yml
+- type: Plans
+  url: plans/urbanstems-plans-pricing.yml
+- type: Lifecycle
+  url: lifecycle/urbanstems-lifecycle.yml
+- type: Conformance
+  url: conformance/urbanstems-conformance.yml
+- type: DataModel
+  url: data-model/urbanstems-data-model.yml
+- type: AgentSkill
+  url: skills/_index.yml
+- type: Packages
+  url: packages/urbanstems-packages.yml
+x-enrichment:
+  date: '2026-09-02'
+  status: enriched
+  artifacts_added: 26
+  pass: local-v1
+x-coverage:
+  state: covered

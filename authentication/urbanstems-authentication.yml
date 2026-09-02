@@ -1,0 +1,113 @@
+generated: '2026-09-02'
+method: probed
+source: >-
+  https://urbanstems.com/.well-known/openid-configuration (200),
+  https://urbanstems.com/.well-known/oauth-protected-resource (200), anonymous MCP tools/list and
+  initialize against https://274513-24.myshopify.com/api/ucp/mcp (200), and
+  https://urbanstems.com/agents.md (200)
+name: UrbanStems authentication profile
+slug: urbanstems
+
+summary: >-
+  UrbanStems publishes no API keys and runs no developer key-issuance program. Its agent-facing
+  commerce API is anonymous: tools/list, catalog search, product lookup, cart and checkout creation
+  all succeed with no credential. Authorization moves to the payment step instead of the transport
+  step — completing a checkout requires a buyer-approved payment instrument and an idempotency key.
+  A separate OAuth 2.0 / OpenID Connect authorization server exists for customer accounts.
+
+schemes:
+- id: none
+  surface: UrbanStems Commerce MCP API
+  endpoint: https://274513-24.myshopify.com/api/ucp/mcp
+  type: none
+  verified: probed
+  evidence:
+    request: 'POST tools/list with no Authorization header'
+    http_status: 200
+    result: 13 tools returned with full inputSchemas
+  note: >-
+    No API key, bearer token or client credential is required or accepted for tool discovery or for
+    catalog, cart and checkout operations.
+
+- id: ucp-agent-profile
+  surface: UrbanStems Commerce MCP API
+  type: agent-identity
+  required: true
+  location: request body — meta.ucp-agent.profile
+  format: URI
+  verified: probed
+  note: >-
+    Not authentication in the credential sense, but it is a required identity input on all 13 tools:
+    every inputSchema lists meta as required, and meta requires ucp-agent, which requires profile —
+    "Agent profile URI for UCP discovery." The server identifies the calling agent, not the user.
+
+- id: payment-instrument
+  surface: UrbanStems Commerce MCP API — complete_checkout
+  type: buyer-authorization
+  required: true
+  location: request body — checkout.payment.instruments[]
+  verified: probed
+  handlers:
+  - id: gpay
+    handler: com.google.pay
+    version: '2026-01-11'
+    merchant_id: '16708973830884969730'
+    merchant_origin: urbanstems.com
+    gateway: shopify
+    card_networks: [VISA, MASTERCARD, AMEX, DISCOVER]
+    auth_methods: [PAN_ONLY, CRYPTOGRAM_3DS]
+    billing_address_required: true
+  - id: shopify.card
+    handler: dev.shopify.card
+    version: '2026-01-15'
+    card_brands: [visa, master, american_express, discover, diners_club]
+  - id: shop_pay
+    handler: dev.shopify.shop_pay
+    version: '2026-04-08'
+    shop_id: '69340168440'
+  note: >-
+    complete_checkout requires checkout.payment. Apple Pay instruments are additionally constrained
+    by the schema to type "card" with an apple_pay_token credential and a billing_address. The
+    provider's own agent instructions state: "Checkout requires human approval. Agents must not
+    complete payment without explicit buyer consent."
+
+- id: shopify-customer-account-oauth
+  surface: Customer accounts (order history, saved addresses)
+  type: oauth2
+  subtype: openIdConnect
+  verified: probed
+  issuer: https://shopify.com/authentication/69340168440
+  discovery: https://urbanstems.com/.well-known/openid-configuration
+  authorization_endpoint: https://tracking.urbanstems.com/authentication/oauth/authorize
+  token_endpoint: https://tracking.urbanstems.com/authentication/oauth/token
+  end_session_endpoint: https://tracking.urbanstems.com/authentication/logout
+  jwks_uri: https://tracking.urbanstems.com/authentication/.well-known/jwks.json
+  grant_types: [authorization_code, refresh_token, 'urn:ietf:params:oauth:grant-type:jwt-bearer']
+  response_types: [code]
+  pkce: ['S256']
+  token_endpoint_auth_methods: [client_secret_basic, client_secret_post]
+  id_token_signing_algs: [RS256]
+  subject_types: [public]
+  claims: [iss, sub, aud, exp, iat, nonce, sid, email, email_verified]
+  scopes_file: scopes/urbanstems-scopes.yml
+  note: >-
+    Platform-operated (Shopify customer accounts) but published under UrbanStems' own hostnames.
+    Client registration is not publicly documented by UrbanStems; there is no self-service developer
+    console on urbanstems.com.
+
+protected_resource:
+  source: https://urbanstems.com/.well-known/oauth-protected-resource
+  resource: https://urbanstems.com
+  authorization_servers:
+  - https://tracking.urbanstems.com
+  - https://shopify.com/authentication/69340168440
+  bearer_methods_supported: [header]
+  rfc: RFC 9728
+
+gaps:
+- No security.txt and no published vulnerability-disclosure contact on any UrbanStems host.
+- No developer portal, no API key issuance, no documented client registration for the OAuth server.
+- >-
+  The MCP endpoint UrbanStems documents in /llms.txt and /agents.md
+  (https://urbanstems.com/api/ucp/mcp) returns 404; the working endpoint is only discoverable via
+  /.well-known/ucp.

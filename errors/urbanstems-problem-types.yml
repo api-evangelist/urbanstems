@@ -1,0 +1,96 @@
+generated: '2026-09-02'
+method: derived
+source: >-
+  Observed live responses from https://urbanstems.com/api/ucp/mcp (404),
+  https://urbanstems.com/openapi.json (404), https://urbanstems.com/.well-known/security.txt (404),
+  https://274513-24.myshopify.com/api/ucp/mcp (200 JSON-RPC), plus the rate-limit statement in
+  https://urbanstems.com/agents.md
+name: UrbanStems error catalog
+slug: urbanstems
+format: json-rpc-2.0
+rfc9457: false
+rfc9457_note: >-
+  UrbanStems does not publish application/problem+json. There is no error reference page anywhere on
+  urbanstems.com; every entry below was observed on a live response or is stated in the provider's
+  own agent instructions.
+
+envelopes:
+- name: JSON-RPC 2.0 error
+  applies_to: https://274513-24.myshopify.com/api/ucp/mcp and /api/mcp
+  shape: '{"jsonrpc":"2.0","id":<id>,"error":{"code":<int>,"message":"<string>","data":<any>}}'
+  method: derived
+  note: >-
+    MCP transport errors use the JSON-RPC 2.0 error object. Tool-level failures may instead be
+    returned in the result with isError set, per MCP. Neither the code range nor the tool error
+    vocabulary is documented by UrbanStems.
+- name: Storefront HTTP error
+  applies_to: https://urbanstems.com/*
+  shape: '{"error":{"statusCode":<int>,"message":"<string>"}}'
+  method: probed
+  observed_example: '{"error":{"statusCode":404,"message":"Resource not found."}}'
+  observed_at: POST https://urbanstems.com/api/ucp/mcp
+
+problem_types:
+- id: resource-not-found
+  status: 404
+  title: Resource not found
+  envelope: Storefront HTTP error
+  observed: true
+  evidence:
+    url: https://urbanstems.com/api/ucp/mcp
+    method: POST
+    body: '{"error":{"statusCode":404,"message":"Resource not found."}}'
+  remediation: >-
+    Do not use the /api/ucp/mcp path on the urbanstems.com host — it is the endpoint the provider's
+    own llms.txt names, and it 404s. Resolve the endpoint from
+    https://urbanstems.com/.well-known/ucp instead.
+
+- id: html-not-found
+  status: 404
+  title: Not Found (HTML)
+  envelope: HTML error page
+  observed: true
+  evidence:
+    urls:
+    - https://urbanstems.com/.well-known/security.txt
+    - https://urbanstems.com/.well-known/api-catalog
+    - https://urbanstems.com/.well-known/agent-card.json
+    body_starts_with: '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>404 Not Found</title>'
+  remediation: >-
+    Unmatched /.well-known/* paths return an HTML 404 page, not JSON. A client that only checks the
+    status code is fine; one that parses the body must not assume JSON.
+
+- id: rate-limited
+  status: 429
+  title: Too Many Requests
+  envelope: not documented
+  observed: false
+  documented: true
+  evidence:
+    url: https://urbanstems.com/agents.md
+    quote: 'Respect rate limits. The MCP endpoint is rate-limited per IP. Back off on 429 responses.'
+  remediation: >-
+    Back off on 429. No Retry-After header, limit, window or burst is documented, and none was
+    observed on 200 responses, so back-off must be exponential and blind.
+
+- id: checkout-completion-error
+  status: null
+  title: Errors encountered completing a checkout
+  envelope: JSON-RPC 2.0 result payload
+  observed: false
+  documented: true
+  evidence:
+    source: mcp/urbanstems-ucp-mcp-tools.json
+    quote: >-
+      complete_checkout "Returns details about the completed checkout, including order ID, Thank You
+      Page URL, or any errors encountered."
+  remediation: >-
+    complete_checkout can fail inside a successful transport response. Inspect the result payload
+    for errors before telling a buyer the order was placed. The specific error vocabulary is not
+    published.
+
+gaps:
+- No published error reference page.
+- No RFC 9457 problem+json.
+- No documented tool-level error codes or a checkout-failure vocabulary.
+- No documented 429 response headers.

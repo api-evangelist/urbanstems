@@ -1,0 +1,217 @@
+generated: '2026-09-02'
+method: derived
+source: >-
+  mcp/urbanstems-ucp-mcp-tools.json (live tools/list, HTTP 200), https://urbanstems.com/agents.md
+  (200), https://urbanstems.com/policies/refund-policy (200),
+  https://urbanstems.com/.well-known/ucp (200)
+name: UrbanStems API conventions
+slug: urbanstems
+surface: UrbanStems Commerce MCP API (UCP dev.ucp.shopping over MCP)
+
+auth:
+  style: none for transport; buyer-approved payment instrument at the point of purchase
+  detail: See authentication/urbanstems-authentication.yml.
+
+idempotency:
+  supported: true
+  scope: complete_checkout only
+  mechanism: request field
+  field: meta.idempotency-key
+  required: true
+  type: string
+  retention: not documented
+  evidence: >-
+    complete_checkout inputSchema — meta.properties["idempotency-key"] {"type":"string",
+    "description":"An idempotency key for completing the checkout."}, and meta.required includes
+    "idempotency-key". No other tool declares one.
+  note: >-
+    The single money-moving operation is the only one that requires an idempotency key, which is the
+    right place for it. create_cart, create_checkout, update_cart and update_checkout are NOT
+    idempotent and carry no key — an agent that retries create_checkout blindly will create a second
+    checkout. Cancel the orphan with cancel_checkout.
+
+pagination:
+  style: cursor
+  applies_to: [search_catalog]
+  request:
+    cursor: catalog.pagination.cursor
+    limit: catalog.pagination.limit
+    limit_default: 10
+    limit_minimum: 1
+    limit_maximum: not documented
+  response:
+    cursor_field: pagination.cursor
+  note: >-
+    "Results are paginated, with initial results limited to improve experience. Use the
+    pagination.cursor from the response to fetch additional pages when users request more results."
+    lookup_catalog is bounded instead of paginated — maximum 10 IDs per request.
+
+identifiers:
+  style: Shopify Global IDs (GIDs)
+  formats:
+  - entity: Product
+    format: gid://shopify/Product/{id}
+  - entity: ProductVariant
+    format: gid://shopify/ProductVariant/{id}
+  - entity: Cart
+    format: 'gid://shopify/Cart/{id}?key={secret}'
+    note: The cart GID carries a capability secret in a query parameter — treat it as a bearer credential.
+  - entity: Checkout
+    format: gid://shopify/Checkout/{id}
+  - entity: Order
+    format: gid://shopify/Order/{id}
+
+money:
+  representation: integer minor units paired with an ISO 4217 currency code
+  shape: '{"amount": 2500, "currency": "USD"}'
+  example: '{"amount": 2500, "currency": "USD"} is $25.00'
+  filters: catalog.filters.price.min and .max are also minor units
+  note: >-
+    Stated identically in all 13 tool descriptions: "Convert to major units before quoting a price to
+    a buyer (divide by 100 for two-decimal currencies such as USD and EUR; zero-decimal currencies
+    such as JPY are already whole units)."
+
+localization:
+  mechanism: context object accepted on catalog, cart and checkout calls
+  fields: [address_country, address_region, postal_code, language, currency, intent]
+  language_format: IETF BCP 47
+  country_format: ISO 3166-1 alpha-2
+  currency_format: ISO 4217
+  precedence: >-
+    "Provisional context hints ... Used when authoritative data (e.g. shipping address) is missing;
+    higher-resolution data supersedes these values and unsupported hints may be ignored without
+    error."
+
+agent_identity:
+  field: meta.ucp-agent.profile
+  required: true
+  applies_to: all 13 tools
+  format: URI
+  note: Required identity input; the server identifies the calling agent by profile URI.
+
+attribution:
+  supported: true
+  fields: [referring_domain, click_id_tag, click_id_value, activity_id_tag, activity_id_value, utm_campaign, utm_source, utm_medium, utm_content, utm_term]
+  applies_to: [create_cart, update_cart, create_checkout, update_checkout, complete_checkout]
+  note: >-
+    Marketing attribution is a first-class part of the agent contract — the merchant expects agents
+    to declare where the buyer came from.
+
+discounts:
+  field: discounts.codes[]
+  semantics: case-insensitive; a submitted array REPLACES previously submitted codes; send an empty array to clear
+  guidance_in_contract: '"Only prompt if customer mentions having a discount code."'
+
+versioning:
+  scheme: dated protocol versions
+  current: '2026-08-25'
+  also_supported: ['2026-04-08', '2026-01-23']
+  discovery: https://urbanstems.com/.well-known/ucp
+  negotiation: per-version profile URLs are published under /.well-known/ucp/{version}
+  mcp_protocol_version: '2025-06-18'
+
+error_envelope:
+  transport: JSON-RPC 2.0 error object
+  storefront_http: '{"error":{"statusCode":<int>,"message":"<string>"}}'
+  rfc9457: false
+  detail: See errors/urbanstems-problem-types.yml.
+
+request_tracing:
+  supported: true
+  header: x-request-id
+  format: '<uuid>-<epoch-seconds>'
+  observed: '2026-09-02, POST tools/list, HTTP 200'
+  also:
+  - header: server-timing
+    carries: 'processing/db durations, edge, country, asn, requestID, servedBy'
+  - header: x-shopify-ucp-mcp-api-version
+    value_observed: '2026-08-25'
+    meaning: Echoes the UCP protocol version that served the request — usable for version pinning.
+  note: >-
+    Quote x-request-id when reporting a problem. Note there is no developer support channel to
+    report it to — help.urbanstems.com is a retail care center.
+
+rate_limit_signalling:
+  documented: true
+  quantified: false
+  statement: '"Respect rate limits. The MCP endpoint is rate-limited per IP. Back off on 429 responses."'
+  standard_headers: none documented and none observed on 200 responses
+  cost_headers_observed: [shopify-complexity-score, shopify-complexity-score-v2]
+  budget_headers_observed: []
+  note: >-
+    A cost signal is returned (complexity score) with no corresponding budget or remaining balance,
+    so pacing cannot be computed from the response.
+  detail: See rate-limits/urbanstems-rate-limits.yml.
+
+dry_run_mode:
+  supported: false
+  grade: absent
+  note: >-
+    There is no test mode, sandbox store, simulated checkout or test payment token. An agent cannot
+    rehearse a purchase. create_cart and create_checkout are the closest thing to a rehearsal — they
+    are real objects with real totals but move no money — and both are reversible (see below).
+
+reversibility:
+  applicable: true
+  grade: verified
+  summary: >-
+    Every write UrbanStems exposes to an agent is reversible up to the moment of payment, and only
+    up to that moment. Both cart and checkout have an explicit cancel operation. After
+    complete_checkout succeeds the API offers no reversal at all — no refund, void, or cancel tool
+    exists — and the published refund policy makes the purchase final except for a narrow
+    damaged-goods claim with a stated 3-day window.
+  operations:
+  - write: create_cart
+    reversal: cancel_cart
+    operation_id: cancel_cart
+    window: >-
+      Any time before the cart is converted to a checkout and paid. No expiry is stated by the
+      provider.
+    window_stated: false
+    grade: documented
+    source: mcp/urbanstems-ucp-mcp-tools.json
+  - write: create_checkout
+    reversal: cancel_checkout
+    operation_id: cancel_checkout
+    window: >-
+      Before complete_checkout. Once the checkout is completed there is no cancel path in the
+      contract.
+    window_stated: false
+    grade: documented
+    source: mcp/urbanstems-ucp-mcp-tools.json
+  - write: update_cart / update_checkout
+    reversal: re-issue the same call with the prior values
+    operation_id: update_cart, update_checkout
+    window: unbounded while the cart/checkout is open
+    window_stated: false
+    grade: documented
+    note: >-
+      Full-replacement semantics on discounts.codes[] make an update self-reversing; line-item
+      updates are addressed by line item id.
+  - write: complete_checkout
+    reversal: none in the API
+    operation_id: null
+    window: >-
+      "within 3 days of original shipment date" — the only reversal UrbanStems offers post-payment,
+      and only for a Damaged Product, claimed by returning the product or submitting a photograph.
+      The remedy is a replacement; a refund of the original payment is at UrbanStems' discretion when
+      a replacement cannot be provided.
+    window_stated: true
+    grade: verified
+    source: https://urbanstems.com/policies/refund-policy
+    docs: https://urbanstems.com/policies/refund-policy
+    note: >-
+      The policy states "Your purchase is final and nonrefundable. No Product may be returned or
+      refunded except for Damaged Products", that exchanges are not accepted, and that prepaid and
+      gift subscriptions cannot be cancelled or refunded. The claim is a human support flow through
+      help.urbanstems.com — there is no programmatic path. An agent MUST NOT tell a buyer a purchase
+      can be undone.
+  human_channel: https://help.urbanstems.com/en-US
+
+cross_links:
+  errors: errors/urbanstems-problem-types.yml
+  lifecycle: lifecycle/urbanstems-lifecycle.yml
+  authentication: authentication/urbanstems-authentication.yml
+  scopes: scopes/urbanstems-scopes.yml
+  rate_limits: rate-limits/urbanstems-rate-limits.yml
+  data_model: data-model/urbanstems-data-model.yml

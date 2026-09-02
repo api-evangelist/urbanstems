@@ -1,0 +1,54 @@
+generated: '2026-09-02'
+method: searched
+source: >-
+  https://urbanstems.com/pages/corporate-gifting (HTTP 200), https://urbanstems.com/agents.md
+  (HTTP 200), https://urbanstems.com/.well-known/ucp (HTTP 200)
+name: UrbanStems plans and pricing
+slug: urbanstems
+
+plan_count: 0
+plans: []
+note: >-
+  UrbanStems sells flowers, not API access. There is no API pricing page, no developer plan, no
+  metered tier and no paid access model of any kind — the commerce MCP endpoint is free and
+  anonymous, and the money changes hands as a retail purchase inside the checkout it exposes. The
+  only commercial program adjacent to an integration is Corporate Gifting, and its terms are not
+  published: the page advertises "tiered discounts, flat-rate shipping, and a dedicated care
+  specialist" and then routes to a "Get in Touch" inquiry form with no percentages, minimums or
+  rates stated.
+
+api_access_model:
+  cost_to_agent: none
+  credential_required: false
+  metering: not published
+  gate: >-
+    No commercial gate on the API. The commercial gate is the retail transaction itself, priced per
+    product in ISO 4217 minor units returned by search_catalog / get_product.
+
+adjacent_programs:
+- name: Corporate Gifting
+  url: https://urbanstems.com/pages/corporate-gifting
+  http_status: 200
+  pricing_published: false
+  stated_benefits:
+  - tiered discounts
+  - flat-rate shipping
+  - dedicated care specialist
+  quantified: false
+  access: 'Get in Touch inquiry form'
+  api_offered: not stated
+  note: >-
+    No discount percentage, order minimum or shipping rate is published. Recorded as an unpriced
+    sales-gated program, not as a plan.
+
+product_pricing:
+  published: true
+  machine_readable: true
+  surfaces:
+  - https://urbanstems.com/products/{handle}.json
+  - https://urbanstems.com/collections/{handle}/products.json
+  - search_catalog / get_product on the commerce MCP endpoint
+  format: integer minor units plus ISO 4217 currency code
+  note: >-
+    Retail prices are fully machine-readable and reachable without credentials — which is the
+    substantive pricing transparency here, even though there is no plan table to record.

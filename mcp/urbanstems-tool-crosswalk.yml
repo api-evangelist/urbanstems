@@ -1,0 +1,134 @@
+generated: '2026-09-02'
+method: derived
+source: >-
+  mcp/urbanstems-ucp-mcp-tools.json (live tools/list, HTTP 200) crossed against the read-only HTTP
+  routes UrbanStems documents for agents in https://urbanstems.com/llms.txt (HTTP 200)
+name: UrbanStems MCP tool crosswalk
+slug: urbanstems
+
+caveat: >-
+  UrbanStems publishes no OpenAPI, so the REST side of this crosswalk has no operationIds. Each row
+  binds a tool to the documented HTTP route the provider itself names in /llms.txt, written as
+  METHOD path. Confidence is graded accordingly and no row is asserted beyond what the two documents
+  state.
+
+surfaces:
+- name: UCP Commerce MCP
+  kind: mcp
+  url: https://274513-24.myshopify.com/api/ucp/mcp
+  gated: false
+  tool_count: 13
+  schema_source: live tools/list
+- name: Storefront MCP
+  kind: mcp
+  url: https://274513-24.myshopify.com/api/mcp
+  gated: false
+  tool_count: 1
+  schema_source: live tools/list
+- name: Storefront read-only JSON routes
+  kind: rest
+  base: https://urbanstems.com
+  gated: false
+  openapi: null
+  documented_at: https://urbanstems.com/llms.txt
+  routes:
+  - GET /collections/all
+  - GET /products/{handle}
+  - GET /products/{handle}.json
+  - GET /collections/{handle}
+  - GET /collections/{handle}/products.json
+  - GET /search?q={query}&type=product
+  - GET /sitemap.xml
+  - GET /agents.md
+- name: Customer Account MCP
+  kind: mcp
+  url: not published by UrbanStems
+  gated: true
+  note: >-
+    The OIDC discovery document advertises the scope customer-account-mcp-api:full, so an
+    authenticated per-buyer MCP surface exists on the platform, but UrbanStems publishes no endpoint
+    for it. Its tools cannot be enumerated anonymously and are deliberately not guessed here.
+
+crosswalk:
+- tool: search_catalog
+  category: catalog
+  rest: ['GET /search?q={query}&type=product', 'GET /collections/{handle}/products.json']
+  binding: semantic
+  confidence: medium
+  note: >-
+    Both surface product search over the same catalog, but they are not the same operation: the tool
+    adds category/price/availability filters, buyer context, cursor pagination and UCP-shaped
+    responses, while /search is the storefront's own HTML/JSON search and is Disallowed for crawlers
+    in robots.txt.
+- tool: get_product
+  category: catalog
+  rest: ['GET /products/{handle}.json']
+  binding: semantic
+  confidence: medium
+  note: >-
+    Different key spaces — the tool takes a gid://shopify/Product/{id}, the route takes a URL handle.
+    A client cannot translate between them from published data alone.
+- tool: lookup_catalog
+  category: catalog
+  rest: []
+  binding: none
+  confidence: high
+  note: >-
+    Batch resolution of up to 10 product/variant GIDs with exact-vs-featured match markers has no
+    documented HTTP equivalent.
+
+mcp_only:
+- tool: create_cart
+  reason: No public storefront route creates a cart as a JSON resource; /cart is Disallowed in robots.txt.
+- tool: get_cart
+  reason: Cart state is only readable through the tool; /cart and /carts are Disallowed in robots.txt.
+- tool: update_cart
+  reason: No documented public HTTP write route.
+- tool: cancel_cart
+  reason: No documented public HTTP write route.
+- tool: create_checkout
+  reason: /checkout and /checkouts/ are Disallowed in robots.txt and are browser flows, not an API.
+- tool: get_checkout
+  reason: No documented public HTTP read route for checkout state.
+- tool: update_checkout
+  reason: No documented public HTTP write route.
+- tool: complete_checkout
+  reason: >-
+    Payment authorization has no HTTP counterpart on the storefront. This is the only operation
+    requiring meta.idempotency-key, and the provider requires contemporaneous buyer approval.
+- tool: cancel_checkout
+  reason: No documented public HTTP write route.
+- tool: get_order
+  reason: /orders is Disallowed in robots.txt; order retrieval is tool-only.
+- tool: search_shop_policies_and_faqs
+  reason: >-
+    Retrieval-augmented answering over policy text. The underlying policy pages exist as HTML
+    (/policies/privacy-policy, /policies/terms-of-service, /policies/refund-policy,
+    /policies/shipping-policy) but there is no query API over them.
+
+rest_only:
+- route: GET /collections/all
+  reason: A browsable full-catalog listing. The tool surface requires a query or filters — search_catalog has no "return everything" mode.
+- route: GET /sitemap.xml
+  reason: >-
+    Crawl-time discovery, including /sitemap_agentic_discovery.xml, /sitemap_products_1.xml and
+    /sitemap_collections_1.xml. No tool exposes the sitemap.
+- route: GET /agents.md
+  reason: The agent instruction document itself. No tool serves it.
+- route: GET /products/{handle}
+  reason: Human-facing product page (HTML), with no tool counterpart.
+- route: GET /collections/{handle}
+  reason: Human-facing collection page (HTML), with no tool counterpart.
+
+coverage:
+  mcp_tools_total: 14
+  mcp_tools_bound_to_rest: 2
+  mcp_tools_partially_bound: 1
+  mcp_only: 11
+  rest_routes_documented: 8
+  rest_only: 5
+  openapi_operations: 0
+  note: >-
+    Eleven of fourteen tools have no public HTTP equivalent — the write half of this store is
+    reachable only through MCP. That is the substantive finding: agent access here is not a wrapper
+    over an existing REST API, it IS the API.

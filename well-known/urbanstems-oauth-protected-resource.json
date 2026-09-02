@@ -1,0 +1,10 @@
+{
+    "resource": "https://urbanstems.com",
+    "authorization_servers": [
+        "https://tracking.urbanstems.com",
+        "https://shopify.com/authentication/69340168440"
+    ],
+    "bearer_methods_supported": [
+        "header"
+    ]
+}

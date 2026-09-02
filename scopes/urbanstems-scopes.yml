@@ -1,0 +1,42 @@
+generated: '2026-09-02'
+method: probed
+source: https://urbanstems.com/.well-known/openid-configuration (HTTP 200, scopes_supported)
+name: UrbanStems OAuth scopes
+slug: urbanstems
+docs: null
+docs_note: >-
+  UrbanStems publishes no scopes/permissions reference page of its own. The scope list below is read
+  verbatim from the machine-readable OIDC discovery document served at the UrbanStems host; the
+  descriptions are the standard meanings of those identifiers, not UrbanStems prose.
+
+authorization_server:
+  issuer: https://shopify.com/authentication/69340168440
+  discovery: https://urbanstems.com/.well-known/openid-configuration
+  authorization_endpoint: https://tracking.urbanstems.com/authentication/oauth/authorize
+  token_endpoint: https://tracking.urbanstems.com/authentication/oauth/token
+
+scope_count: 4
+scopes:
+- name: openid
+  standard: OpenID Connect Core
+  description: Request an ID token identifying the signed-in customer.
+- name: email
+  standard: OpenID Connect Core
+  description: Release the email and email_verified claims for the signed-in customer.
+- name: customer-account-api:full
+  standard: Shopify Customer Account API
+  description: >-
+    Full access to the customer account surface on behalf of the signed-in customer — orders,
+    addresses, profile and subscription state for this shop.
+- name: customer-account-mcp-api:full
+  standard: Shopify Customer Account MCP API
+  description: >-
+    Full access to the customer-account MCP surface on behalf of the signed-in customer. This is the
+    authenticated companion to the anonymous commerce MCP endpoint; it is the scope an agent would
+    hold to act on a specific buyer's account rather than on the public catalog.
+
+not_scoped:
+  surface: UrbanStems Commerce MCP API (https://274513-24.myshopify.com/api/ucp/mcp)
+  note: >-
+    The UCP commerce endpoint is anonymous — it accepts no bearer token and therefore has no scope
+    model. Buyer authority is carried per-call by the payment instrument, not by an OAuth grant.

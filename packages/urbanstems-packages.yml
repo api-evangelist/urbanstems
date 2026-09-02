@@ -1,0 +1,113 @@
+generated: '2026-09-02'
+method: searched
+source: >-
+  registry.npmjs.org search (HTTP 200, total 0), pypi.org/pypi/urbanstems/json (404),
+  rubygems.org/api/v1/gems/urbanstems.json (404), api.github.com/orgs/urbanstems (200) and its
+  repository listing (200), plus https://urbanstems.com/llms.txt and /agents.md (200)
+name: UrbanStems packages and SDKs
+slug: urbanstems
+
+package_count: 0
+official_sdk_count: 0
+packages: []
+
+finding: >-
+  UrbanStems publishes no client library in any registry. There is no npm package, no PyPI
+  distribution, no gem, and no CDN-distributed browser build. This is not an oversight to be filed as
+  a gap in the usual way: the company's programmable surface is a remote MCP endpoint that an agent
+  POSTs JSON-RPC to, and an MCP endpoint is consumed by an MCP client, not by a vendor SDK. There is
+  nothing here for an SDK to wrap. No SDKs pointer is claimed.
+
+registry_probes:
+- registry: npm
+  query: urbanstems
+  endpoint: https://registry.npmjs.org/-/v1/search?text=urbanstems&size=20
+  http_status: 200
+  total_results: 0
+  version: null
+  published: null
+  note: Checked, nothing to record.
+- registry: pypi
+  package: urbanstems
+  endpoint: https://pypi.org/pypi/urbanstems/json
+  http_status: 404
+  version: null
+  published: null
+  note: Checked, package does not exist.
+- registry: rubygems
+  package: urbanstems
+  endpoint: https://rubygems.org/api/v1/gems/urbanstems.json
+  http_status: 404
+  version: null
+  published: null
+  note: Checked, gem does not exist.
+- registry: cdn
+  probed: false
+  version: null
+  published: null
+  note: >-
+    No script tag, unpkg or jsDelivr reference to an UrbanStems-authored library appears in
+    /llms.txt, /agents.md, or the storefront HTML. Nothing to look up.
+
+github_org:
+  url: https://github.com/urbanstems
+  api: https://api.github.com/orgs/urbanstems
+  http_status: 200
+  verified_as_first_party: true
+  verification: 'org blog field = https://urbanstems.com; description = "Flowers on-demand in DC, NYC, and next day Nationwide"'
+  created_at: '2014-11-13'
+  public_repos: 7
+  first_party_sdk_for_urbanstems: false
+  note: >-
+    All seven public repositories are internal tooling or clients for OTHER companies' APIs, not
+    client libraries for an UrbanStems API. The most recent push to any of them is 2023-06-12, and
+    five of seven have not been pushed since 2019 or earlier — the org is effectively dormant, and
+    predates the agent surface by a decade.
+  repositories:
+  - name: node-zipments
+    description: Zipments API package for NodeJS
+    language: JavaScript
+    pushed: '2015-04-16'
+    wraps: a third-party delivery API, not UrbanStems
+    official: false
+  - name: handwriting-node
+    description: Node bindings for Handwriting.io API
+    language: JavaScript
+    pushed: '2016-10-21'
+    wraps: a third-party handwriting API, not UrbanStems
+    official: false
+  - name: legacy-react-geosuggest
+    description: A React autosuggest for the Google Maps Places API.
+    language: JavaScript
+    pushed: '2015-12-30'
+    official: false
+  - name: legacy-react-geosuggest-plus
+    description: null
+    language: JavaScript
+    pushed: '2017-03-17'
+    official: false
+  - name: urbanfun
+    description: Test project for prospective UrbanStemmers
+    pushed: '2016-01-11'
+    official: false
+  - name: stems-kml-2-geojson
+    description: simple batch (many)kml-to-(only one)geojson converter
+    language: JavaScript
+    pushed: '2019-05-23'
+    official: false
+  - name: update-confluence-attachment
+    description: null
+    language: JavaScript
+    pushed: '2023-06-12'
+    official: false
+
+third_party_recommended:
+- name: Shop skill
+  url: https://shop.app/SKILL.md
+  owner: Shopify
+  official_to_urbanstems: false
+  recommended_by: https://urbanstems.com/llms.txt
+  note: >-
+    UrbanStems' own llms.txt recommends installing Shopify's cross-store Shop skill for buy-for-me
+    agents. It is Shopify's artifact, not UrbanStems', and is recorded here only because the merchant
+    names it as the preferred client.

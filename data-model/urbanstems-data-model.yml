@@ -1,0 +1,169 @@
+generated: '2026-09-02'
+method: derived
+source: mcp/urbanstems-ucp-mcp-tools.json (live tools/list, HTTP 200, 2026-09-02)
+name: UrbanStems commerce data model
+slug: urbanstems
+note: >-
+  Derived strictly from the input schemas of the 13 live UCP tools. Response schemas are not
+  published — the server returns unschema'd result payloads — so only fields an agent can SEND are
+  authoritative here. Fields marked inferred_from_id_format are read from documented GID formats,
+  not from a declared property.
+
+id_scheme:
+  style: Shopify Global ID
+  pattern: 'gid://shopify/{Type}/{id}'
+  types_observed: [Product, ProductVariant, Cart, Checkout, Order]
+  caveat: >-
+    Cart IDs carry a secret — 'gid://shopify/Cart/abc123?key=secret'. The identifier is also a
+    capability; do not log or share it.
+
+entities:
+- name: Product
+  id_format: gid://shopify/Product/{id}
+  addressed_by: [get_product, lookup_catalog, search_catalog]
+  fields_declared:
+  - name: id
+    type: string
+    required: true
+  - name: selected
+    type: array<object{name,label}>
+    description: Selected variant options for narrowing.
+  - name: preferences
+    type: array<string>
+    description: Buyer preferences.
+  note: >-
+    "Returns a singular product with a relevant set of variants, exact pricing, and real-time
+    availability."
+
+- name: ProductVariant
+  id_format: gid://shopify/ProductVariant/{id}
+  addressed_by: [lookup_catalog, LineItem.item.id]
+  note: >-
+    lookup_catalog resolves a variant GID to its parent product and marks the match "exact"; a
+    product GID resolves with match "featured".
+
+- name: LineItem
+  fields_declared:
+  - name: id
+    type: string
+    description: The ID of the line item to update.
+  - name: quantity
+    type: integer
+    required: true
+  - name: item.id
+    type: string
+    required: true
+    description: The Product Variant ID to add or update.
+
+- name: Cart
+  id_format: 'gid://shopify/Cart/{id}?key={secret}'
+  addressed_by: [get_cart, create_cart, update_cart, cancel_cart]
+  fields_declared:
+  - {name: line_items, type: 'array<LineItem>', required: true}
+  - {name: buyer, type: Buyer}
+  - {name: context, type: Context}
+  - {name: attribution, type: Attribution}
+  - {name: fulfillment, type: Fulfillment}
+  - {name: discounts.codes, type: 'array<string>'}
+
+- name: Checkout
+  id_format: gid://shopify/Checkout/{id}
+  addressed_by: [get_checkout, create_checkout, update_checkout, complete_checkout, cancel_checkout]
+  fields_declared:
+  - {name: line_items, type: 'array<LineItem>', required: true}
+  - {name: cart_id, type: string, description: 'Cart to convert; its contents win over overlapping checkout fields.'}
+  - {name: buyer, type: Buyer}
+  - {name: context, type: Context}
+  - {name: attribution, type: Attribution}
+  - {name: fulfillment, type: Fulfillment}
+  - {name: discounts.codes, type: 'array<string>'}
+  - {name: payment, type: Payment}
+
+- name: Buyer
+  fields_declared:
+  - {name: email, type: string, format: email}
+  - {name: phone_number, type: string}
+  additional_properties: true
+
+- name: Context
+  purpose: Provisional localization and pricing hints, superseded by authoritative data.
+  fields_declared:
+  - {name: address_country, type: string, format: ISO 3166-1 alpha-2}
+  - {name: address_region, type: string}
+  - {name: postal_code, type: string}
+  - {name: language, type: string, format: BCP 47}
+  - {name: currency, type: string, format: ISO 4217}
+  - {name: intent, type: string}
+  - {name: eligibility, type: 'array<string>', description: 'Reverse-domain benefit claims, e.g. com.example.loyalty'}
+
+- name: Attribution
+  fields_declared: [referring_domain, click_id_tag, click_id_value, activity_id_tag, activity_id_value, utm_campaign, utm_source, utm_medium, utm_content, utm_term]
+
+- name: Fulfillment
+  fields_declared:
+  - {name: methods, type: array<FulfillmentMethod>}
+- name: FulfillmentMethod
+  fields_declared:
+  - {name: id, type: string}
+  - {name: type, type: string, required: true}
+  - {name: line_item_ids, type: 'array<string>'}
+  - {name: selected_destination_id, type: string}
+  - {name: destinations, type: array<Destination>}
+  - {name: groups, type: 'array<object{id,selected_option_id}>'}
+  merchant_config:
+    method_combinations: [[shipping]]
+    multi_destination: []
+    source: https://urbanstems.com/.well-known/ucp
+    meaning: This merchant ships only; no pickup, and no multi-destination split within one order.
+
+- name: Destination
+  fields_declared: [id, first_name, last_name, phone_number, street_address, extended_address, address_locality, address_region, postal_code, address_country]
+
+- name: Payment
+  fields_declared:
+  - {name: instruments, type: array<PaymentInstrument>}
+- name: PaymentInstrument
+  fields_declared:
+  - {name: id, type: string, required: true}
+  - {name: handler_id, type: string, required: true}
+  - {name: type, type: string, required: true}
+  - {name: billing_address, type: BillingAddress}
+  - {name: credential, type: 'object{token,type,payment_data,transaction_identifier}'}
+  - {name: display, type: 'object{brand,last_digits,expiry_month,expiry_year,rich_text_description,rich_card_art,funding_source}'}
+  - {name: selected, type: boolean}
+  conditional_rules:
+  - 'if handler_id == "apple-pay" then type == "card", billing_address and credential are required, and credential.type == "apple_pay_token" with payment_data{version,data,signature,header}'
+  - 'otherwise credential requires token and type'
+  funding_source_enum: [debit, credit, prepaid, store]
+
+- name: Order
+  id_format: gid://shopify/Order/{id}
+  addressed_by: [get_order]
+  produced_by: complete_checkout
+  note: complete_checkout "Returns details about the completed checkout, including order ID, Thank You Page URL".
+
+- name: Money
+  shape: '{amount: integer (ISO 4217 minor units), currency: string (ISO 4217)}'
+  used_in: [prices, totals, taxes, discounts, catalog.filters.price.min, catalog.filters.price.max]
+
+relationships:
+- {from: Cart, to: LineItem, type: has_many, via: line_items}
+- {from: Checkout, to: LineItem, type: has_many, via: line_items}
+- {from: Checkout, to: Cart, type: belongs_to, via: cart_id, note: optional — a checkout may be created from a cart}
+- {from: LineItem, to: ProductVariant, type: belongs_to, via: item.id}
+- {from: ProductVariant, to: Product, type: belongs_to, via: 'lookup_catalog resolution (parent product returned)'}
+- {from: Cart, to: Buyer, type: has_one, via: buyer}
+- {from: Checkout, to: Buyer, type: has_one, via: buyer}
+- {from: Cart, to: Fulfillment, type: has_one, via: fulfillment}
+- {from: Checkout, to: Fulfillment, type: has_one, via: fulfillment}
+- {from: Fulfillment, to: FulfillmentMethod, type: has_many, via: methods}
+- {from: FulfillmentMethod, to: Destination, type: has_many, via: destinations}
+- {from: FulfillmentMethod, to: LineItem, type: has_many, via: line_item_ids}
+- {from: Checkout, to: Payment, type: has_one, via: payment}
+- {from: Payment, to: PaymentInstrument, type: has_many, via: instruments}
+- {from: PaymentInstrument, to: BillingAddress, type: has_one, via: billing_address}
+- {from: Order, to: Checkout, type: belongs_to, via: 'produced by complete_checkout'}
+
+gaps:
+- No response schemas are published; only request shapes are authoritative.
+- Product and Order object shapes must be discovered by calling the API, not read from a contract.

@@ -1,0 +1,189 @@
+generated: '2026-09-02'
+method: probed
+source: >-
+  https://urbanstems.com/.well-known/ucp (HTTP 200) named the endpoint; tools/list POSTed live to
+  https://274513-24.myshopify.com/api/ucp/mcp (HTTP 200) and
+  https://274513-24.myshopify.com/api/mcp (HTTP 200)
+name: UrbanStems Model Context Protocol servers
+slug: urbanstems
+
+ownership:
+  note: >-
+    The MCP endpoints are served from 274513-24.myshopify.com, which is UrbanStems' own Shopify
+    permanent store domain — the storefront HTML at https://urbanstems.com/ declares
+    data-shop-permanent-domain="274513-24.myshopify.com", and the UCP profile served at
+    https://urbanstems.com/.well-known/ucp names merchant_name "UrbanStems",
+    merchant_origin "urbanstems.com" and shop_id 69340168440. A myshopify.com permanent domain is
+    assigned to exactly one merchant, so this is UrbanStems' surface hosted on its commerce platform,
+    not another company's.
+  evidence:
+  - url: https://urbanstems.com/
+    signal: 'data-shop-permanent-domain="274513-24.myshopify.com"'
+    http_status: 200
+  - url: https://urbanstems.com/.well-known/ucp
+    signal: 'payment_handlers["com.google.pay"][0].config.merchant_info.merchant_name = "UrbanStems"'
+    http_status: 200
+
+deployment:
+  mode: remote
+  endpoint: https://274513-24.myshopify.com/api/ucp/mcp
+  install: null
+  package: null
+  auth: none
+  verified: probed
+  note: >-
+    Remote only. There is no first-party stdio package — nothing to npx or pip install. The endpoint
+    answers an unauthenticated JSON-RPC tools/list and initialize. Buyer payment credentials are
+    supplied per-call through the checkout payment instrument, not through a server credential.
+
+discrepancy:
+  claim: >-
+    https://urbanstems.com/llms.txt and /agents.md both instruct agents to POST to
+    https://urbanstems.com/api/ucp/mcp.
+  observed: >-
+    That URL returns HTTP 404 {"error":{"statusCode":404,"message":"Resource not found."}}. The
+    working endpoint is the one named by /.well-known/ucp,
+    https://274513-24.myshopify.com/api/ucp/mcp (HTTP 200). An agent that follows the llms.txt
+    literally cannot reach the server; an agent that follows the UCP discovery document can.
+  probed: '2026-09-02'
+  evidence:
+  - url: https://urbanstems.com/api/ucp/mcp
+    method: POST
+    http_status: 404
+  - url: https://urbanstems.com/api/mcp
+    method: POST
+    http_status: 404
+  - url: https://274513-24.myshopify.com/api/ucp/mcp
+    method: POST
+    http_status: 200
+  - url: https://274513-24.myshopify.com/api/mcp
+    method: POST
+    http_status: 200
+
+servers:
+- name: UrbanStems UCP Commerce MCP
+  endpoint: https://274513-24.myshopify.com/api/ucp/mcp
+  transport: streamable-http
+  protocol_version: '2025-06-18'
+  server_info:
+    name: universal-commerce
+    version: 0.1.0
+  capabilities:
+    tools:
+      listChanged: true
+    prompts:
+      listChanged: true
+    resources:
+      listChanged: true
+    logging: {}
+  auth: none
+  status: live
+  tools_file: mcp/urbanstems-ucp-mcp-tools.json
+  tool_count: 13
+  tools:
+  - name: search_catalog
+    category: catalog
+    write: false
+    summary: >-
+      Search store products by natural-language query and/or filters (categories, price min/max in
+      minor units, available). Cursor-paginated, default limit 10.
+  - name: lookup_catalog
+    category: catalog
+    write: false
+    summary: >-
+      Resolve up to 10 product or variant GIDs in one request; results grouped by product with
+      exact/featured match markers.
+  - name: get_product
+    category: catalog
+    write: false
+    summary: >-
+      Full product detail for one product ID, with variants, exact pricing and real-time
+      availability; supports option selection and buyer preferences.
+  - name: get_cart
+    category: cart
+    write: false
+    summary: Return cart contents for a gid://shopify/Cart/... identifier.
+  - name: create_cart
+    category: cart
+    write: true
+    summary: Create a cart from line items, with optional buyer, context, attribution, fulfillment and discount codes.
+  - name: update_cart
+    category: cart
+    write: true
+    summary: Update line items, buyer, context, fulfillment methods/destinations or discount codes on an existing cart.
+  - name: cancel_cart
+    category: cart
+    write: true
+    reverses: create_cart
+    summary: Cancel a cart.
+  - name: get_checkout
+    category: checkout
+    write: false
+    summary: Return checkout detail including line items, totals, discounts and taxes.
+  - name: create_checkout
+    category: checkout
+    write: true
+    summary: >-
+      Create a checkout from line items or from an existing cart_id, carrying buyer, fulfillment
+      methods and destinations, discount codes and payment instruments.
+  - name: update_checkout
+    category: checkout
+    write: true
+    summary: Update an existing checkout — line items, buyer, fulfillment selection, discounts, payment instruments.
+  - name: complete_checkout
+    category: checkout
+    write: true
+    summary: >-
+      Finalize the purchase and return the order ID and Thank You Page URL. REQUIRES
+      meta.idempotency-key, and the provider's own agent instructions require contemporaneous buyer
+      approval of payment.
+  - name: cancel_checkout
+    category: checkout
+    write: true
+    reverses: create_checkout
+    summary: Cancel a checkout that has not been completed.
+  - name: get_order
+    category: order
+    write: false
+    summary: Return order detail for a gid://shopify/Order/... identifier.
+
+- name: UrbanStems Storefront MCP
+  endpoint: https://274513-24.myshopify.com/api/mcp
+  transport: streamable-http
+  auth: none
+  status: live
+  tools_file: mcp/urbanstems-storefront-mcp-tools.json
+  tool_count: 1
+  tools:
+  - name: search_shop_policies_and_faqs
+    category: support
+    write: false
+    summary: >-
+      Natural-language question answering over the store's policies, products and services (return
+      policy, shipping policy, phone number, hours).
+
+protocols:
+- name: Universal Commerce Protocol
+  id: dev.ucp.shopping
+  version: '2026-08-25'
+  supported_versions:
+  - '2026-08-25'
+  - '2026-04-08'
+  - '2026-01-23'
+  discovery: https://urbanstems.com/.well-known/ucp
+  spec: https://ucp.dev/2026-08-25/specification/overview/
+  schema: https://ucp.dev/2026-08-25/services/shopping/mcp.openrpc.json
+- name: Model Context Protocol
+  version: '2025-06-18'
+  transport: streamable-http (JSON-RPC 2.0 over HTTP POST)
+
+notes:
+- >-
+  meta.ucp-agent.profile (a URI identifying the calling agent's UCP profile) is a REQUIRED input on
+  every one of the 13 UCP tools. An agent that omits it is not conformant with this server's schema.
+- >-
+  All monetary values in requests and responses are integers in ISO 4217 minor units paired with a
+  currency code — {"amount": 2500, "currency": "USD"} is $25.00.
+- >-
+  There is no first-party UrbanStems SDK, CLI or stdio MCP package. The remote endpoint is the
+  entire programmable surface.

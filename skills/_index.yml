@@ -1,0 +1,44 @@
+generated: '2026-09-02'
+method: generated
+source: >-
+  Grounded in mcp/urbanstems-ucp-mcp-tools.json (live tools/list, HTTP 200), the merchant profile at
+  https://urbanstems.com/.well-known/ucp (200), and the provider's own agent instructions at
+  https://urbanstems.com/agents.md (200)
+name: UrbanStems agent skills
+slug: urbanstems
+
+note: >-
+  UrbanStems publishes no first-party Agent Skill of its own; its /llms.txt instead recommends the
+  cross-store Shop skill at https://shop.app/SKILL.md, which is Shopify's, not UrbanStems'. The
+  skills below are API Evangelist-authored packagings of the merchant's REAL, live tool surface —
+  every tool name, parameter path and requirement below was read from the server's own tools/list
+  response, and nothing is invented.
+
+api: UrbanStems Commerce MCP API
+endpoint: https://274513-24.myshopify.com/api/ucp/mcp
+
+skills:
+- name: urbanstems-find-flowers
+  file: skills/urbanstems-find-flowers.md
+  description: Search the UrbanStems catalog and present accurate, correctly-denominated options to a buyer.
+  tools: [search_catalog, lookup_catalog, get_product]
+  write: false
+- name: urbanstems-build-a-gift-order
+  file: skills/urbanstems-build-a-gift-order.md
+  description: Assemble a cart, set the recipient shipping destination, and convert it to a priced checkout.
+  tools: [create_cart, update_cart, get_cart, cancel_cart, create_checkout, get_checkout, update_checkout]
+  write: true
+- name: urbanstems-complete-purchase-safely
+  file: skills/urbanstems-complete-purchase-safely.md
+  description: Complete payment with buyer approval and an idempotency key, then confirm the order — and know what cannot be undone.
+  tools: [update_checkout, complete_checkout, cancel_checkout, get_order]
+  write: true
+
+provider_published_skills:
+- url: https://shop.app/SKILL.md
+  owner: Shopify (shop.app)
+  first_party_to_urbanstems: false
+  recommended_by: https://urbanstems.com/llms.txt
+  note: >-
+    Recorded because UrbanStems recommends it by name, not saved as an UrbanStems artifact — it is
+    a cross-store Shopify skill, not this merchant's.

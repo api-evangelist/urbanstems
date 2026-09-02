@@ -1,0 +1,83 @@
+generated: '2026-09-02'
+method: probed
+source: >-
+  https://urbanstems.com/agents.md (HTTP 200) for the stated policy; response headers observed on a
+  live POST tools/list to https://274513-24.myshopify.com/api/ucp/mcp (HTTP 200) on 2026-09-02
+name: UrbanStems rate limits
+slug: urbanstems
+
+limit_count: 0
+limit_count_note: >-
+  UrbanStems states that a limit exists but publishes no number. There is no rate-limit reference
+  page, no quantified limit, no window and no burst anywhere on urbanstems.com. An honest zero: a
+  qualitative rate-limit statement is present, a quantified limit is not.
+
+documented_statement:
+  quote: 'Respect rate limits. The MCP endpoint is rate-limited per IP. Back off on 429 responses.'
+  source: https://urbanstems.com/agents.md
+  scope: per-ip
+  surface: https://274513-24.myshopify.com/api/ucp/mcp
+
+limits: []
+
+response_signalling:
+  exhaustion_status: 429
+  exhaustion_status_source: https://urbanstems.com/agents.md
+  standard_headers_documented: []
+  standard_headers_observed: []
+  standard_headers_probed:
+  - X-RateLimit-Limit
+  - X-RateLimit-Remaining
+  - X-RateLimit-Reset
+  - RateLimit-Limit
+  - RateLimit-Remaining
+  - RateLimit-Reset
+  - RateLimit-Policy
+  - Retry-After
+  observation:
+    method: POST tools/list
+    url: https://274513-24.myshopify.com/api/ucp/mcp
+    http_status: 200
+    date: '2026-09-02'
+    result: >-
+      No RateLimit-*, X-RateLimit-* or Retry-After header of any family was returned on a successful
+      call. The agent has no remaining-budget signal and can only discover the ceiling by hitting it.
+
+  non_standard_headers_observed:
+  - name: shopify-complexity-score
+    value_observed: '510'
+    meaning: >-
+      A per-request cost score, not a limit. It tells a client how expensive the call it just made
+      was, but no budget, window or remaining balance is returned alongside it, so it cannot be used
+      to pace requests without first learning the ceiling empirically.
+  - name: shopify-complexity-score-v2
+    value_observed: '51'
+    meaning: A second-generation cost score on a different scale. Same limitation — cost without budget.
+  - name: x-shopify-ucp-mcp-api-version
+    value_observed: '2026-08-25'
+    meaning: >-
+      Echoes the UCP protocol version that served the request. Useful for version pinning; unrelated
+      to rate limiting.
+  - name: x-request-id
+    value_observed: '<uuid>-<epoch>'
+    meaning: Per-request trace identifier. Quote it when reporting a problem.
+  - name: server-timing
+    meaning: >-
+      Carries processing/db durations plus edge, country, asn and requestID descriptors. Diagnostic,
+      not budget.
+  note: >-
+    The substantive finding: this endpoint returns a COST signal and no BUDGET signal. An agent is
+    told what it spent and never what it has left.
+
+storefront_surface:
+  scope: https://urbanstems.com read-only JSON routes (/products/*.json, /collections/*/products.json)
+  documented: false
+  note: >-
+    UrbanStems documents these routes for agents in /llms.txt but states no limit for them; the
+    rate-limit sentence is scoped to the MCP endpoint only.
+
+gaps:
+- No numeric limit, window or burst published.
+- No RateLimit-* or X-RateLimit-* response headers emitted on success.
+- No Retry-After documented for the 429 the provider tells agents to expect.
+- A complexity/cost score is returned with no corresponding budget or remaining balance.

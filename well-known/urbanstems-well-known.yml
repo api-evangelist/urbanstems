@@ -1,0 +1,123 @@
+generated: '2026-09-02'
+method: probed
+source: live GET probes of /.well-known/* on every UrbanStems host, 2026-09-02
+name: UrbanStems well-known documents
+slug: urbanstems
+
+hosts:
+- host: urbanstems.com
+  role: storefront and agent-discovery host
+  documents:
+  - path: /.well-known/ucp
+    status: 200
+    content_type: application/json
+    file: well-known/urbanstems-ucp.json
+    note: >-
+      Universal Commerce Protocol merchant profile — version 2026-08-25 plus two prior versions,
+      the dev.ucp.shopping MCP service endpoint, seven shopping capabilities and three payment
+      handlers (Google Pay, Shopify card, Shop Pay).
+  - path: /.well-known/openid-configuration
+    status: 200
+    content_type: application/json
+    file: well-known/urbanstems-openid-configuration.json
+    note: >-
+      Shopify customer-account OIDC discovery. Issuer https://shopify.com/authentication/69340168440;
+      all endpoints delegated to the UrbanStems-branded subdomain tracking.urbanstems.com.
+  - path: /.well-known/oauth-authorization-server
+    status: 200
+    content_type: application/json
+    file: well-known/urbanstems-oauth-authorization-server.json
+    note: Identical body to the OIDC discovery document (RFC 8414 alias).
+  - path: /.well-known/oauth-protected-resource
+    status: 200
+    content_type: application/json
+    file: well-known/urbanstems-oauth-protected-resource.json
+    note: >-
+      RFC 9728 protected-resource metadata. resource https://urbanstems.com, authorization_servers
+      tracking.urbanstems.com and shopify.com/authentication/69340168440, bearer via header.
+  - path: /.well-known/security.txt
+    status: 404
+  - path: /.well-known/api-catalog
+    status: 404
+  - path: /.well-known/ai-plugin.json
+    status: 404
+  - path: /.well-known/agent-card.json
+    status: 404
+  - path: /.well-known/agent.json
+    status: 404
+
+- host: tracking.urbanstems.com
+  role: Shopify customer-account authorization server on an UrbanStems subdomain
+  documents:
+  - path: /.well-known/openid-configuration
+    status: 200
+    content_type: application/json
+    file: well-known/urbanstems-openid-configuration.json
+    note: Same document served at the storefront host; saved once.
+  - path: /.well-known/oauth-authorization-server
+    status: 200
+    content_type: application/json
+    file: well-known/urbanstems-oauth-authorization-server.json
+  - path: /.well-known/oauth-protected-resource
+    status: 200
+    content_type: application/json
+    file: well-known/urbanstems-oauth-protected-resource.json
+  - path: /.well-known/ucp
+    status: 404
+  - path: /.well-known/security.txt
+    status: 404
+  - path: /.well-known/api-catalog
+    status: 404
+  - path: /.well-known/ai-plugin.json
+    status: 404
+  - path: /.well-known/agent-card.json
+    status: 404
+  - path: /.well-known/agent.json
+    status: 404
+
+- host: 274513-24.myshopify.com
+  role: Shopify permanent store domain — serves the MCP endpoints
+  documents:
+  - path: /.well-known/security.txt
+    status: 301
+    note: 301 redirect to the canonical urbanstems.com host; not a document.
+  - path: /.well-known/api-catalog
+    status: 301
+  - path: /.well-known/agent-card.json
+    status: 301
+  - path: /.well-known/agent.json
+    status: 301
+
+other_agent_documents:
+- path: /llms.txt
+  host: urbanstems.com
+  status: 200
+  content_type: text/markdown
+  file: llms/urbanstems-llms.txt
+- path: /agents.md
+  host: urbanstems.com
+  status: 200
+  content_type: text/markdown
+  file: llms/urbanstems-agents.md
+- path: /sitemap_agentic_discovery.xml
+  host: urbanstems.com
+  status: 200
+  content_type: application/xml
+  note: A dedicated agentic-discovery sitemap whose single entry is https://urbanstems.com/agents.md.
+- path: /robots.txt
+  host: urbanstems.com
+  status: 200
+  note: >-
+    Ends with the comment "# llms.txt: /llms.txt". No AI-crawler-specific allow/deny blocks; the
+    named agents are adsbot-google, Nutch, AhrefsBot, AhrefsSiteAudit, MJ12bot and Pinterest.
+
+summary:
+  hits: 4
+  misses: 12
+  security_txt: false
+  api_catalog: false
+  agent_card: false
+  note: >-
+    Four real documents served (UCP profile plus three OAuth/OIDC discovery documents). No
+    security.txt, no api-catalog and no A2A agent card on any host, so no SecurityTxt and no
+    AgentCard pointer is claimed.
