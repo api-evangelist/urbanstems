@@ -14,8 +14,15 @@
       "title": "",
       "saved": 0,
       "method": "none"
+    },
+    {
+      "source": "https://urbanstems.com/blogs/news.atom",
+      "feed_url": "https://urbanstems.com/blogs/news.atom",
+      "title": "",
+      "saved": 0,
+      "method": "feed"
     }
   ],
-  "post_count": 0,
-  "fetched": "2026-09-06T19:17:18Z"
+  "post_count": 30,
+  "fetched": "2026-09-13T13:00:00Z"
 }
