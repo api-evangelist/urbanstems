@@ -26,6 +26,18 @@ tags:
 - Gifting
 - Agentic Commerce
 - Universal Commerce Protocol
+- MCP
+- Shopify
+- Direct to Consumer
+tags_raw:
+- Company
+- Commerce
+- E-Commerce
+- Retail
+- Flowers
+- Gifting
+- Agentic Commerce
+- Universal Commerce Protocol
 - Model Context Protocol
 - Shopify
 - Direct to Consumer
@@ -46,6 +58,13 @@ apis:
   humanURL: https://urbanstems.com/agents.md
   baseURL: https://274513-24.myshopify.com/api/ucp/mcp
   tags:
+  - Commerce
+  - Catalog
+  - Cart
+  - Checkout
+  - Order
+  - Agentic Commerce
+  tags_raw:
   - Commerce
   - Catalog
   - Cart
@@ -91,6 +110,11 @@ apis:
     (274513-24.myshopify.com), which is where the MCP endpoint actually answers; the two bases
     disagree because the two surfaces genuinely live on different hosts.
   tags:
+  - Product
+  - Collection
+  - Catalog
+  - Sitemap
+  tags_raw:
   - Products
   - Collections
   - Catalog
