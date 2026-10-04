@@ -92,6 +92,9 @@ apis:
     url: errors/urbanstems-problem-types.yml
   - type: RateLimits
     url: rate-limits/urbanstems-rate-limits.yml
+  x-surface: platform-generated
+  x-platform: shopify
+  x-platform-surface: ucp
 - aid: urbanstems:urbanstems-storefront-json-api
   name: UrbanStems Storefront JSON API
   description: >-
@@ -101,7 +104,6 @@ apis:
     sitemap. No authentication is required. These are Shopify Online Store routes served on the
     UrbanStems domain and named by UrbanStems in its own agent instructions.
   humanURL: https://urbanstems.com/llms.txt
-  baseURL: https://urbanstems.com
   x-base-note: >-
     The site root IS the API base for this entry, not a marketing URL standing in for one. Shopify
     Online Store JSON routes are served off the storefront origin — https://urbanstems.com/products/{handle}.json
@@ -124,6 +126,9 @@ apis:
     url: https://urbanstems.com/llms.txt
   - type: LLMsTxt
     url: llms/urbanstems-llms.txt
+  x-surface: platform-generated
+  x-platform: shopify
+  x-platform-surface: storefront-json
 common:
 - type: DomainSecurity
   url: security/urbanstems-domain-security.yml
