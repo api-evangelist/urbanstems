@@ -64,5 +64,118 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-UrbanStems is a company surfaced via the API Evangelist harvest backlog (source: secondary-market) and added to the network as a stub for full-pipeline profiling.
-- https://www.nasdaqprivatemarket.com/
+UrbanStems is a direct-to-consumer flower and gifting company founded on Valentine's Day 2014 in Washington, DC, selling modern bouquets, plants, gifts and centerpieces with same-day delivery in major US cities and next-day delivery nationwide, sourced through a vertically integrated supply chain that buys direct from Rainforest Alliance Certified farms. Its storefront runs on Shopify at urbanstems.com, and the company exposes a genuine agent-facing commerce surface rather than a developer API program: a published /llms.txt and /agents.md, a /.well-known/ucp merchant profile implementing the Universal Commerce Protocol (UCP 2026-08-25), and a live unauthenticated Model Context Protocol endpoint offering thirteen catalog, cart, checkout and order tools that lets an agent search the catalog and drive a buyer-approved purchase end to end.
+
+**Areas:** Company · Commerce · E-Commerce · Retail · Flowers · Gifting · Agentic Commerce · Universal Commerce Protocol · MCP · Shopify · Direct to Consumer
+
+## UrbanStems on APIs.io
+
+Everything profiled for UrbanStems is published on APIs.io rather than in this repository. Start at the provider page — **[apis.io/providers/urbanstems/](https://apis.io/providers/urbanstems/)** — or go straight to one of the APIs or properties below.
+
+### APIs (2)
+
+- [UrbanStems Commerce MCP API](https://apis.io/apis/urbanstems/urbanstems-commerce-mcp-api/) — The agent-facing commerce surface for the UrbanStems store, implementing the Universal Commerce Protocol (dev.ucp.shopping) over MCP. Thirteen tools cover…
+- [UrbanStems Storefront JSON API](https://apis.io/apis/urbanstems/urbanstems-storefront-json-api/) — The read-only storefront JSON endpoints UrbanStems documents for agents in its own /llms.txt and /agents.md — product JSON at /products/{handle}.json,…
+
+### Published properties
+
+Each property below is a page on APIs.io carrying the machine-readable artifact and what it says.
+
+#### MCP servers (1)
+
+Model Context Protocol servers that expose the API to agents.
+
+- [UrbanStems Model Context Protocol servers](https://apis.io/servers/urbanstems/urbanstems-model-context-protocol-servers/)
+
+#### Security (2)
+
+Authentication, trust centre, and vulnerability disclosure.
+
+- [Urbanstems Authentication](https://apis.io/security/urbanstems/urbanstems-authentication/)
+- [Urbanstems Domain Security](https://apis.io/security/urbanstems/urbanstems-domain-security/)
+
+#### OAuth scopes (1)
+
+The permissions the API asks for.
+
+- [Urbanstems Scopes](https://apis.io/scopes/urbanstems/urbanstems-scopes/)
+
+#### Plans and pricing (1)
+
+Published plans, tiers and prices.
+
+- [Urbanstems Plans Pricing](https://apis.io/plans/urbanstems/urbanstems-plans-pricing/)
+
+#### Rate limits (1)
+
+Published request limits.
+
+- [Urbanstems Rate Limits](https://apis.io/rate-limits/urbanstems/urbanstems-rate-limits/)
+
+## Where to find this API
+
+Links to the company's own pages. This repository publishes no copy of their specifications — the canonical document is theirs and lives at the URLs below.
+
+- [Website](https://urbanstems.com/)
+- [Documentation](https://urbanstems.com/agents.md)
+- [Sign up](https://urbanstems.com/account/register)
+- [Support](https://help.urbanstems.com/en-US)
+- [Blog](https://urbanstems.com/blogs/news)
+- [Terms of service](https://urbanstems.com/policies/terms-of-service)
+- [Privacy policy](https://urbanstems.com/policies/privacy-policy)
+- [GitHub](https://github.com/urbanstems)
+
+## API Evangelist rating
+
+**Kin Score 25.0** — emerging · rubric 0.25.0 · scored 2026-10-23
+
+| Facet | Score |
+|---|---|
+| Discoverability | 66.7 |
+| Contract quality | 0.0 |
+| Contract governance | 18.2 |
+| Operational transparency | 2.6 |
+| Developer ergonomics | 30.4 |
+| Access clarity | 34.2 |
+
+**Agent readiness 22.4** — agent-aware
+
+| Agent-readiness dimension | Result |
+|---|---|
+| Spec Presence | — |
+| Agentic Access | — |
+| Reversibility Documented | — |
+| MCP Server | platform (partial credit) |
+| Auth Clarity | served (partial credit) |
+| Idempotency | derived (partial credit) |
+| Error Semantics | derived (partial credit) |
+| OpenAPI Examples | — |
+| Rate Limit Signal | documented (partial credit) |
+| Event Surface Described | — |
+| Agent Skills | derived (partial credit) |
+| Well Known Catalog | — |
+| Consent Identity | — |
+| Agent Card | — |
+| Dry Run Mode | — |
+| Delegated Identity | served (partial credit) |
+| Protected Resource Metadata | verified |
+| Dynamic Client Registration | — |
+| Agentic Commerce | platform (partial credit) |
+| Pagination Ratio | na |
+| Operation Distinctiveness | na |
+
+**Regulatory alignment 34.3** — Horizontal (data, software, accessibility, platform)
+
+The rubric is published at [github.com/api-evangelist/kin-score](https://github.com/api-evangelist/kin-score). The per-check breakdown behind these numbers — which checks were earned, partial or missed — along with score history and how this provider compares to its peers, is available at [apis.io/providers/urbanstems/](https://apis.io/providers/urbanstems/).
+
+## How this profile is made
+
+API Evangelist profiles a company's public API surface the way a developer would find it: the website, developer portal and documentation, the specifications it publishes, its public repositories, and its pricing, status and changelog pages. From that it derives the properties above — contracts split per API, workflows, schemas, collections, governance rules, plans and rate limits — and scores them against the published [Kin Score rubric](https://github.com/api-evangelist/kin-score).
+
+The artifacts are published on [APIs.io](https://apis.io), not in this repository. This repository is the public record for UrbanStems: the place to say something is wrong, missing or out of date, and to ask for a re-score or a removal.
+
+## Open an issue
+
+- **Something about this listing** — a wrong description, a missing API, a stale artifact or a question about the rating: [open an issue on this repository](https://github.com/api-evangelist/urbanstems/issues/new).
+- **A new API, or one that is not in the catalog yet** — [submit it on APIs.io](https://apis.io/add/).
+- **Anything else** — [the APIs.io inbox](https://github.com/api-search/inbox/issues/new) or [info@apievangelist.com](mailto:info@apievangelist.com).
